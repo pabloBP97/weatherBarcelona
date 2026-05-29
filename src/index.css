@@ -27,11 +27,16 @@
     --border: #334155;
     --shadow: 0 2px 12px rgba(0,0,0,0.4);
   }
+
+  body {
+    background: linear-gradient(180deg, #0b1d3a 0%, #14294d 60%, #1f3a5f 100%);
+  }
 }
 
 body {
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  background: var(--bg);
+  background: linear-gradient(180deg, #4aa3df 0%, #7ec3ee 45%, #bfe3f7 100%);
+  background-attachment: fixed;
   color: var(--text);
   min-height: 100dvh;
 }
@@ -254,4 +259,21 @@ body {
 .error-hint {
   font-size: 0.85rem;
   color: var(--text-muted);
+}
+
+/* Desktop: wider dashboard, hourly row shows all 12 hours without scrolling */
+@media (min-width: 640px) {
+  .app {
+    max-width: 760px;
+  }
+
+  .hourly-row {
+    display: grid;
+    grid-template-columns: repeat(12, 1fr);
+    overflow-x: visible;
+  }
+
+  .hourly-item {
+    min-width: 0;
+  }
 }
