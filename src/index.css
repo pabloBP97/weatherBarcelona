@@ -1,0 +1,257 @@
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+:root {
+  --bg: #f0f4f8;
+  --surface: #ffffff;
+  --surface2: #e8eef5;
+  --text: #1a202c;
+  --text-muted: #718096;
+  --accent: #3b82f6;
+  --accent-night: #6366f1;
+  --border: #e2e8f0;
+  --shadow: 0 2px 12px rgba(0,0,0,0.08);
+  --radius: 16px;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    --bg: #0f172a;
+    --surface: #1e293b;
+    --surface2: #263347;
+    --text: #f1f5f9;
+    --text-muted: #94a3b8;
+    --border: #334155;
+    --shadow: 0 2px 12px rgba(0,0,0,0.4);
+  }
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100dvh;
+}
+
+.app {
+  max-width: 480px;
+  margin: 0 auto;
+  padding: 24px 16px 48px;
+}
+
+.app-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 24px;
+}
+
+.app-header h1 {
+  font-size: 2rem;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+}
+
+.app-subtitle {
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+/* Current card */
+.current-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 28px 24px 20px;
+  margin-bottom: 20px;
+  border-top: 4px solid var(--accent);
+  transition: border-color 0.3s;
+}
+
+.current-card.night {
+  border-top-color: var(--accent-night);
+}
+
+.current-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.current-emoji {
+  font-size: 3.5rem;
+  line-height: 1;
+}
+
+.current-temp {
+  font-size: 4.5rem;
+  font-weight: 700;
+  letter-spacing: -2px;
+  line-height: 1;
+}
+
+.current-label {
+  font-size: 1.1rem;
+  color: var(--text-muted);
+  margin-top: 6px;
+}
+
+.current-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border);
+  font-size: 0.9rem;
+  color: var(--text-muted);
+}
+
+.current-updated {
+  margin-top: 12px;
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+/* Sections */
+.section {
+  background: var(--surface);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 20px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+  margin-bottom: 16px;
+}
+
+/* Hourly */
+.hourly-row {
+  display: flex;
+  gap: 4px;
+  overflow-x: auto;
+  padding-bottom: 4px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+}
+
+.hourly-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  min-width: 52px;
+  padding: 10px 6px;
+  border-radius: 10px;
+  background: var(--surface2);
+  flex-shrink: 0;
+}
+
+.hourly-hour {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.hourly-emoji {
+  font-size: 1.4rem;
+}
+
+.hourly-temp {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.hourly-rain {
+  font-size: 0.65rem;
+  color: #60a5fa;
+}
+
+/* Daily */
+.daily-list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.daily-item {
+  display: grid;
+  grid-template-columns: 3.5rem 2rem 1fr auto;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 8px;
+  border-radius: 8px;
+}
+
+.daily-item.today {
+  background: var(--surface2);
+}
+
+.daily-day {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.daily-emoji {
+  font-size: 1.3rem;
+  text-align: center;
+}
+
+.daily-rain {
+  font-size: 0.75rem;
+  color: #60a5fa;
+}
+
+.daily-range {
+  display: flex;
+  gap: 8px;
+  font-size: 0.9rem;
+}
+
+.daily-max {
+  font-weight: 600;
+}
+
+.daily-min {
+  color: var(--text-muted);
+}
+
+/* States */
+.state-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  padding: 60px 0;
+  color: var(--text-muted);
+}
+
+.spinner {
+  font-size: 2.5rem;
+  animation: spin 1.2s linear infinite;
+  display: inline-block;
+}
+
+@keyframes spin {
+  from { transform: rotate(0deg); }
+  to { transform: rotate(360deg); }
+}
+
+.error {
+  color: #f87171;
+}
+
+.error-hint {
+  font-size: 0.85rem;
+  color: var(--text-muted);
+}
