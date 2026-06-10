@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react'
 
 const CSP = [
   "default-src 'self'",
-  "connect-src 'self' https://api.open-meteo.com",
+  "connect-src 'self' https://api.open-meteo.com https://geocoding-api.open-meteo.com",
   "img-src 'self' data:",
   "style-src 'self' 'unsafe-inline'",
   "script-src 'self'",
@@ -29,4 +29,9 @@ function cspPlugin() {
 export default defineConfig({
   base: '/weatherBarcelona/',
   plugins: [react(), cspPlugin()],
+  test: {
+    environment: 'jsdom',
+    globals: true,
+    setupFiles: './src/test/setup.js',
+  },
 })
