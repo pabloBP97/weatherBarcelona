@@ -15,11 +15,12 @@ export async function searchCities(name) {
   if (!res.ok) throw new WeatherError(`Geocoding API error: ${res.status}`, 'api')
 
   const json = await res.json()
-  // The API omits `results` entirely when there is no match, and omits
-  // `timezone` on country-level entries — 'auto' lets the forecast API
-  // resolve it from the coordinates
-  return (json.results ?? []).map(
-    ({ id, name, country, admin1, latitude, longitude, timezone }) =>
-      ({ id, name, country, admin1, latitude, longitude, timezone: timezone ?? 'auto' }),
-  )
+  // The API omits `results` entirely when there is no match. Country-level
+  // entries (feature_code PCL*, e.g. searching "Brazil") point at the
+  // country's centroid and carry no timezone — meaningless as a weather
+  // location, so they are dropped
+  return (json.results ?? [])
+    .filter(r => r.timezone && !r.feature_code?.startsWith('PCL'))
+    .map(({ id, name, country, admin1, latitude, longitude, timezone }) =>
+      ({ id, name, country, admin1, latitude, longitude, timezone }))
 }

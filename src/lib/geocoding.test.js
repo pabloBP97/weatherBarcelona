@@ -46,19 +46,28 @@ describe('searchCities', () => {
     }])
   })
 
-  it("defaults missing timezone to 'auto' (country-level results)", async () => {
+  it('filters out country-level results, keeping real places', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
       ok: true,
       json: () => Promise.resolve({
-        results: [{
-          id: 3469034, name: 'Brazil', country: 'Brazil',
-          latitude: -10, longitude: -55,
-        }],
+        results: [
+          {
+            id: 3469034, name: 'Brazil', country: 'Brazil', feature_code: 'PCLI',
+            latitude: -10, longitude: -55,
+            // country entries also omit timezone
+          },
+          {
+            id: 4467485, name: 'Brazil', country: 'United States', admin1: 'Indiana',
+            feature_code: 'PPLA2', latitude: 39.52, longitude: -87.12,
+            timezone: 'America/Indiana/Indianapolis',
+          },
+        ],
       }),
     }))
 
-    const [brazil] = await searchCities('brazil')
-    expect(brazil.timezone).toBe('auto')
+    const cities = await searchCities('brazil')
+    expect(cities).toHaveLength(1)
+    expect(cities[0].country).toBe('United States')
   })
 
   it('throws WeatherError kinds on failure', async () => {
