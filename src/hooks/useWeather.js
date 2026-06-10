@@ -31,6 +31,7 @@ export function useWeather(city) {
     setData(null)
     setError(null)
     setLoading(true)
+    setLastUpdated(null)
     load()
     const interval = setInterval(load, POLL_INTERVAL_MS)
 

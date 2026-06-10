@@ -25,7 +25,9 @@ export default function App() {
     saveCity(next)
   }
 
-  const timezone = data?.timezone ?? city.timezone
+  // city.timezone may be 'auto' (country-level geocoding results); only the
+  // resolved timezone from the forecast response is safe to give to Intl
+  const timezone = data?.timezone ?? (city.timezone === 'auto' ? undefined : city.timezone)
   const updatedStr = lastUpdated
     ? lastUpdated.toLocaleTimeString('en-GB', { hour: '2-digit', minute: '2-digit', timeZone: timezone })
     : null

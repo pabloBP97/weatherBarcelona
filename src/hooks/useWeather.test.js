@@ -83,6 +83,9 @@ describe('useWeather', () => {
     rerender({ city: CITY_B })
     expect(result.current.data).toBeNull()
     expect(result.current.loading).toBe(true)
+    // stale lastUpdated belongs to the previous city — must not leak into
+    // the loading gap (it crashed Intl formatting with timezone 'auto')
+    expect(result.current.lastUpdated).toBeNull()
 
     await flush()
     expect(result.current.data).toEqual({ city: 'B' })
