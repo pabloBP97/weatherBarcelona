@@ -15,9 +15,11 @@ export async function searchCities(name) {
   if (!res.ok) throw new WeatherError(`Geocoding API error: ${res.status}`, 'api')
 
   const json = await res.json()
-  // The API omits `results` entirely when there is no match
+  // The API omits `results` entirely when there is no match, and omits
+  // `timezone` on country-level entries — 'auto' lets the forecast API
+  // resolve it from the coordinates
   return (json.results ?? []).map(
     ({ id, name, country, admin1, latitude, longitude, timezone }) =>
-      ({ id, name, country, admin1, latitude, longitude, timezone }),
+      ({ id, name, country, admin1, latitude, longitude, timezone: timezone ?? 'auto' }),
   )
 }

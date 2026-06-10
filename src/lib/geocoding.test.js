@@ -46,6 +46,21 @@ describe('searchCities', () => {
     }])
   })
 
+  it("defaults missing timezone to 'auto' (country-level results)", async () => {
+    vi.stubGlobal('fetch', vi.fn().mockResolvedValue({
+      ok: true,
+      json: () => Promise.resolve({
+        results: [{
+          id: 3469034, name: 'Brazil', country: 'Brazil',
+          latitude: -10, longitude: -55,
+        }],
+      }),
+    }))
+
+    const [brazil] = await searchCities('brazil')
+    expect(brazil.timezone).toBe('auto')
+  })
+
   it('throws WeatherError kinds on failure', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 429 }))
     await expect(searchCities('a b')).rejects.toMatchObject({ kind: 'api' })

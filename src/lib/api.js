@@ -23,7 +23,7 @@ export async function fetchWeather({ latitude, longitude, timezone } = DEFAULT_C
     current: 'temperature_2m,relative_humidity_2m,apparent_temperature,is_day,precipitation,weather_code,wind_speed_10m,wind_direction_10m,uv_index',
     hourly: 'temperature_2m,precipitation_probability,precipitation,weather_code',
     daily: 'weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max,precipitation_sum,sunrise,sunset,uv_index_max',
-    timezone,
+    timezone: timezone ?? 'auto',
     forecast_days: 7,
   })
 

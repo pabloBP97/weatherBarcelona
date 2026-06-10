@@ -37,6 +37,16 @@ describe('fetchWeather', () => {
     expect(url.searchParams.get('timezone')).toBe('Asia/Tokyo')
   })
 
+  it("falls back to timezone=auto when the city has none", async () => {
+    const mock = vi.fn().mockResolvedValue({ ok: true, json: () => Promise.resolve({}) })
+    vi.stubGlobal('fetch', mock)
+
+    await fetchWeather({ latitude: -10, longitude: -55, timezone: undefined })
+
+    const url = new URL(mock.mock.calls[0][0])
+    expect(url.searchParams.get('timezone')).toBe('auto')
+  })
+
   it('throws WeatherError kind=api on non-ok response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }))
 
