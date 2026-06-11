@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react'
 import { fetchWeather } from '../lib/api.js'
+import { loadForecast, saveForecast } from '../lib/forecastCache.js'
 
 const POLL_INTERVAL_MS = 10 * 60 * 1000 // 10 minutes
 
@@ -15,6 +16,7 @@ export function useWeather(city) {
     try {
       const json = await fetchWeather(city)
       if (id !== requestId.current) return // a newer request superseded this one
+      saveForecast(city, json)
       setData(json)
       setLastUpdated(new Date())
       setError(null)
@@ -27,11 +29,14 @@ export function useWeather(city) {
   }, [city])
 
   useEffect(() => {
-    // City changed (or first mount): don't show the previous city's data
-    setData(null)
+    // City changed (or first mount): don't show the previous city's data.
+    // A recent cached forecast for this city bridges the gap (and survives
+    // a full page reload while the weather service is unreachable)
+    const cached = loadForecast(city)
+    setData(cached ? cached.data : null)
+    setLastUpdated(cached ? new Date(cached.timestamp) : null)
     setError(null)
     setLoading(true)
-    setLastUpdated(null)
     load()
     const interval = setInterval(load, POLL_INTERVAL_MS)
 
@@ -46,7 +51,7 @@ export function useWeather(city) {
       document.removeEventListener('visibilitychange', onVisibilityChange)
       window.removeEventListener('focus', load)
     }
-  }, [load])
+  }, [city, load])
 
   return { data, error, loading, lastUpdated }
 }

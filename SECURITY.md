@@ -7,7 +7,7 @@ This is a purely client-side static web application. It has no backend, no datab
 - **Weather data** comes from the public [Open-Meteo API](https://open-meteo.com) over HTTPS; city search uses the Open-Meteo geocoding API. No API key is used or stored.
 - **No secrets or credentials** exist anywhere in this codebase.
 - A **Content-Security-Policy** is injected at build time, restricting network requests to `api.open-meteo.com` and `geocoding-api.open-meteo.com` only.
-- The selected city is saved in the browser's `localStorage` so it survives reloads. It never leaves the device except as coordinates in the weather request itself.
+- The selected city and the last fetched forecast are saved in the browser's `localStorage` so they survive reloads (the forecast doubles as a fallback when the weather service is unreachable). Neither ever leaves the device except as coordinates in the weather request itself.
 
 ## Supported Versions
 

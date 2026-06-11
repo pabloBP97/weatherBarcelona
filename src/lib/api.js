@@ -8,15 +8,35 @@ export const DEFAULT_CITY = {
 
 const BASE = 'https://api.open-meteo.com/v1/forecast'
 
+const MAX_RETRIES = 2
+const RETRY_BASE_DELAY_MS = 500
+
 export class WeatherError extends Error {
-  constructor(message, kind) {
+  constructor(message, kind, status) {
     super(message)
     this.name = 'WeatherError'
     this.kind = kind // 'network' | 'api'
+    this.status = status // HTTP status for kind 'api', undefined otherwise
   }
 }
 
-export async function fetchWeather({ latitude, longitude, timezone } = DEFAULT_CITY) {
+const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms))
+
+async function fetchJson(url) {
+  let res
+  try {
+    res = await fetch(url)
+  } catch {
+    throw new WeatherError('Could not reach the weather service', 'network')
+  }
+  if (!res.ok) throw new WeatherError(`Weather API error: ${res.status}`, 'api', res.status)
+  return res.json()
+}
+
+export async function fetchWeather(
+  { latitude, longitude, timezone } = DEFAULT_CITY,
+  { retries = MAX_RETRIES, retryDelayMs = RETRY_BASE_DELAY_MS } = {},
+) {
   const params = new URLSearchParams({
     latitude,
     longitude,
@@ -27,12 +47,14 @@ export async function fetchWeather({ latitude, longitude, timezone } = DEFAULT_C
     forecast_days: 7,
   })
 
-  let res
-  try {
-    res = await fetch(`${BASE}?${params}`)
-  } catch {
-    throw new WeatherError('Could not reach the weather service', 'network')
+  for (let attempt = 0; ; attempt++) {
+    try {
+      return await fetchJson(`${BASE}?${params}`)
+    } catch (err) {
+      // Connection drops and 5xx are often transient; 4xx won't change on retry
+      const retryable = err.kind === 'network' || err.status >= 500
+      if (!retryable || attempt >= retries) throw err
+      await sleep(retryDelayMs * 2 ** attempt)
+    }
   }
-  if (!res.ok) throw new WeatherError(`Weather API error: ${res.status}`, 'api')
-  return res.json()
 }

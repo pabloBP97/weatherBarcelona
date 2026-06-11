@@ -50,20 +50,62 @@ describe('fetchWeather', () => {
   it('throws WeatherError kind=api on non-ok response', async () => {
     vi.stubGlobal('fetch', vi.fn().mockResolvedValue({ ok: false, status: 500 }))
 
-    await expect(fetchWeather()).rejects.toMatchObject({
+    await expect(fetchWeather(DEFAULT_CITY, { retryDelayMs: 0 })).rejects.toMatchObject({
       name: 'WeatherError',
       kind: 'api',
       message: 'Weather API error: 500',
+      status: 500,
     })
   })
 
   it('throws WeatherError kind=network when fetch rejects', async () => {
     vi.stubGlobal('fetch', vi.fn().mockRejectedValue(new TypeError('Failed to fetch')))
 
-    await expect(fetchWeather()).rejects.toMatchObject({
+    await expect(fetchWeather(DEFAULT_CITY, { retryDelayMs: 0 })).rejects.toMatchObject({
       name: 'WeatherError',
       kind: 'network',
     })
+  })
+
+  it('retries after a transient network failure and succeeds', async () => {
+    const mock = vi.fn()
+      .mockRejectedValueOnce(new TypeError('connection reset'))
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ t: 1 }) })
+    vi.stubGlobal('fetch', mock)
+
+    await expect(fetchWeather(DEFAULT_CITY, { retryDelayMs: 0 })).resolves.toEqual({ t: 1 })
+    expect(mock).toHaveBeenCalledTimes(2)
+  })
+
+  it('retries 5xx responses', async () => {
+    const mock = vi.fn()
+      .mockResolvedValueOnce({ ok: false, status: 503 })
+      .mockResolvedValueOnce({ ok: true, json: () => Promise.resolve({ t: 2 }) })
+    vi.stubGlobal('fetch', mock)
+
+    await expect(fetchWeather(DEFAULT_CITY, { retryDelayMs: 0 })).resolves.toEqual({ t: 2 })
+    expect(mock).toHaveBeenCalledTimes(2)
+  })
+
+  it('does not retry 4xx responses', async () => {
+    const mock = vi.fn().mockResolvedValue({ ok: false, status: 404 })
+    vi.stubGlobal('fetch', mock)
+
+    await expect(fetchWeather(DEFAULT_CITY, { retryDelayMs: 0 })).rejects.toMatchObject({
+      kind: 'api',
+      status: 404,
+    })
+    expect(mock).toHaveBeenCalledTimes(1)
+  })
+
+  it('gives up after exhausting retries', async () => {
+    const mock = vi.fn().mockRejectedValue(new TypeError('connection reset'))
+    vi.stubGlobal('fetch', mock)
+
+    await expect(fetchWeather(DEFAULT_CITY, { retryDelayMs: 0 })).rejects.toMatchObject({
+      kind: 'network',
+    })
+    expect(mock).toHaveBeenCalledTimes(3) // initial attempt + 2 retries
   })
 
   it('exports WeatherError carrying its kind', () => {

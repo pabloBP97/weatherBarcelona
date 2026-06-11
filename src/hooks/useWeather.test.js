@@ -2,6 +2,7 @@ import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest'
 import { renderHook, act } from '@testing-library/react'
 import { useWeather } from './useWeather.js'
 import { fetchWeather } from '../lib/api.js'
+import { saveForecast } from '../lib/forecastCache.js'
 
 vi.mock('../lib/api.js', () => ({ fetchWeather: vi.fn() }))
 
@@ -16,6 +17,7 @@ describe('useWeather', () => {
   beforeEach(() => {
     vi.useFakeTimers()
     fetchWeather.mockReset()
+    localStorage.clear()
   })
 
   afterEach(() => {
@@ -106,6 +108,42 @@ describe('useWeather', () => {
 
     await act(async () => { resolveA({ city: 'A' }) })
     expect(result.current.data).toEqual({ city: 'B' })
+  })
+
+  it('seeds from the cached forecast while fetching fresh data', async () => {
+    saveForecast(CITY_A, { cached: true })
+    let resolveFetch
+    fetchWeather.mockImplementationOnce(() => new Promise(r => { resolveFetch = r }))
+    const { result } = renderHook(() => useWeather(CITY_A))
+
+    expect(result.current.data).toEqual({ cached: true })
+    expect(result.current.lastUpdated).toBeInstanceOf(Date)
+    expect(result.current.loading).toBe(true)
+
+    await act(async () => { resolveFetch({ fresh: true }) })
+    expect(result.current.data).toEqual({ fresh: true })
+    expect(result.current.loading).toBe(false)
+  })
+
+  it('keeps cached data alongside the error when the fetch fails', async () => {
+    // Page reload while the weather service is unreachable
+    saveForecast(CITY_A, { cached: true })
+    fetchWeather.mockRejectedValueOnce(Object.assign(new Error('boom'), { kind: 'network' }))
+    const { result } = renderHook(() => useWeather(CITY_A))
+    await flush()
+
+    expect(result.current.data).toEqual({ cached: true })
+    expect(result.current.error).toEqual({ kind: 'network', message: 'boom' })
+    expect(result.current.loading).toBe(false)
+  })
+
+  it("does not seed another city's cached forecast", async () => {
+    saveForecast(CITY_B, { cached: true })
+    fetchWeather.mockImplementationOnce(() => new Promise(() => {}))
+    const { result } = renderHook(() => useWeather(CITY_A))
+
+    expect(result.current.data).toBeNull()
+    expect(result.current.lastUpdated).toBeNull()
   })
 
   it('stops polling and listening after unmount', async () => {
